@@ -17,7 +17,7 @@ class MLP_DQN:
     FUNCTIONS:
     e_greedy(q_vals,n_actions,epsilon): simulates e-greedy policy 
     select_action(state,policy, epsilon): selects action based on policy and epsilon
-    
+
     """
     def __init__(self,lr,epsilon_max,epsilon_min):
         self.state_dim = 4
@@ -52,25 +52,3 @@ class MLP_DQN:
             return np.argmax(q_values.numpy())
         elif policy == "e-greedy":
             return self.e_greedy(q_values, n_actions=self.action_dim, epsilon=epsilon)
-
-    
-
-class ERBuffer:
-
-    """Creates"""
-    def __init__(self, capacity):
-        self.capacity = capacity
-        self.buffer = []
-    
-    def push(self, state, action, reward, next_state, done):
-        if len(self.buffer) >= self.capacity:
-            self.buffer.pop(0)
-        self.buffer.append((state, action, reward, next_state, done))
-    
-    def sample(self, batch_size):
-        indices = torch.randperm(len(self.buffer))[:batch_size]
-        states, actions, rewards, next_states, dones = zip(*[self.buffer[i] for i in indices])
-        return states, actions, rewards, next_states, dones
-    
-    def __len__(self):
-        return len(self.buffer)
