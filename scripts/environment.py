@@ -2,7 +2,19 @@ import gymnasium as gym
 
 
 class CartPoleEnv():
+    """Generates wrapper class for CartPole Env from gymnasium
+    
+    PARAMS: 
+    render_mode -> human or rgb_array
+    verbose -> verbosity of environment
+    seed -> seed for reproducability 
 
+    FUNCTIONS:
+    step(a -> action): returns observation, reward, terminated, truncated after action a. If truncated/terminated -> resets env
+    terminate(): terminates env 
+
+
+    """
     # SRC: https://arxiv.org/pdf/2407.17032
     def __init__(self, render_mode="rgb_array",verbose= True,seed = 42):
         self.env = gym.make("CartPole-v1", render_mode=render_mode)
