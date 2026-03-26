@@ -1,0 +1,30 @@
+import gymnasium as gym
+
+
+class CartPoleEnv():
+
+    # SRC: https://arxiv.org/pdf/2407.17032
+    def __init__(self, render_mode="rgb_array",verbose= True,seed = 42):
+        self.env = gym.make("CartPole-v1", render_mode=render_mode)
+        self.verbose = verbose
+        self.seed = seed
+        if verbose:
+            print(f"Observation Space={self.env.observation_space}")
+            print(f"Action Space={self.env.action_space}")
+
+        # Initialize with seed
+        self.observation, self.info = self.env.reset(seed=self.seed)
+
+    def step(self,a):
+        self.observation, self.reward, self.terminated, self.truncated, self.info = self.env.step(a)
+        if self.terminated or self.truncated:
+            print("New Episode Starting")
+            self.observation, self.info = self.env.reset()
+
+        return self.observation, self.reward, self.terminated, self.truncated, self.info
+    
+
+        
+    def terminate(self):
+        print("Environment terminated")
+        self.env.close()
