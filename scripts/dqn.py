@@ -7,7 +7,7 @@ from scripts.environment import CartPoleEnv
 
 class MLP_DQN:
     """ 
-    Generates DQN agent with a simple MLP architecture 
+    Generates DQN agent with a simple MLP architecture. No buffer or TN.
 
     PARAMS:
     lr: learning rate
@@ -38,7 +38,7 @@ class MLP_DQN:
 
     # action selection using e-greedy/softmax
 
-    def e_greedy(q_vals,n_actions, epsilon):
+    def e_greedy(self,q_vals,n_actions, epsilon):
         if np.random.rand() < epsilon:
             return np.random.randint(0, n_actions)
         else:
@@ -52,3 +52,33 @@ class MLP_DQN:
             return np.argmax(q_values.numpy())
         elif policy == "e-greedy":
             return self.e_greedy(q_values, n_actions=self.action_dim, epsilon=epsilon)
+        
+
+    def update(self,state,action,reward, state_n,done,  gamma=0.99):
+        """Updates learning steps.
+        PARAMS:
+
+        """
+        state = torch.tensor(state)
+        state_n = torch.tensor(state_n)
+
+        q_curr = self.q_network(state)[action]
+
+        # no_grad to stop gradient flow
+
+        with torch.no_grad():
+            q_n = np.max(self.q_network(state_n))
+            if done:
+                y_i = reward
+            else:
+                y_i = reward+gamma*q_n
+
+        loss_val = self.loss(q_curr,y_i)
+
+
+        # reset gradients
+        self.optimizer.zero_grad()
+
+        loss_val.backward()
+
+        self.optimizer.step()
