@@ -1,7 +1,7 @@
 
 import torch 
 import numpy as np
-from scripts.environment import CartPoleEnv
+from environment import CartPoleEnv
 
 
 
@@ -67,11 +67,11 @@ class MLP_DQN:
         # no_grad to stop gradient flow
 
         with torch.no_grad():
-            q_n = np.max(self.q_network(state_n))
+            q_n = self.q_network(state_n).max()
             if done:
-                y_i = reward
+                y_i = torch.tensor(reward,dtype=torch.float32)
             else:
-                y_i = reward+gamma*q_n
+                y_i = torch.tensor(reward+gamma*q_n.item(),dtype=torch.float32)
 
         loss_val = self.loss(q_curr,y_i)
 

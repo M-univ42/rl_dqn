@@ -1,7 +1,7 @@
 import gymnasium as gym
 
 
-class CartPoleEnv():
+class CartPoleEnv(gym.Env):
     """Generates wrapper class for CartPole Env from gymnasium
     
     PARAMS: 
@@ -30,7 +30,7 @@ class CartPoleEnv():
     def step(self,a):
         self.observation, self.reward, self.terminated, self.truncated, self.info = self.env.step(a)
         if self.terminated or self.truncated:
-            print("New Episode Starting")
+            # print("New Episode Starting")
             self.observation, self.info = self.env.reset()
 
         return self.observation, self.reward, self.terminated, self.truncated, self.info
@@ -40,3 +40,7 @@ class CartPoleEnv():
     def terminate(self):
         print("Environment terminated")
         self.env.close()
+    def reset(self):
+        self.observation, self.info = self.env.reset(seed=self.seed)
+        return self.observation
+    
