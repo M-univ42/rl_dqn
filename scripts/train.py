@@ -2,13 +2,20 @@ from environment import CartPoleEnv
 from dqn import MLP_DQN
 
 def train(n_steps=1000000, lr=0.0001, epsilon_max=1.0, epsilon_min=0.01, gamma=0.99,
-          replay_buffer_size=-1, batch_size=-1, seed=42):
-    """Trains DQN agent"""
+          replay_buffer_size=-1, batch_size=-1, seed=42,
+          update_freq=1, network_size="medium"):
+    """Trains DQN agent.
+
+    update_freq: number of env steps between gradient updates (update-to-data ratio).
+                 1 = update every step, 4 = update every 4 steps, etc.
+    network_size: "small" | "medium" | "large"
+    """
 
     env = CartPoleEnv(render_mode="rgb_array", verbose=True, seed=seed)
 
     dqn_agent = MLP_DQN(lr=lr, epsilon_max=epsilon_max, epsilon_min=epsilon_min,
-                        replay_buffer_size=replay_buffer_size, batch_size=batch_size)
+                        replay_buffer_size=replay_buffer_size, batch_size=batch_size,
+                        network_size=network_size)
 
     state = env.reset()
 
@@ -29,13 +36,14 @@ def train(n_steps=1000000, lr=0.0001, epsilon_max=1.0, epsilon_min=0.01, gamma=0
         i += 1
 
         dqn_agent.add_to_replay_buffer(state, a, reward, next_state, done)
-        replay_batch = dqn_agent.sample_replay_buffer()
-        if replay_batch is not None:
-            batch_states, batch_actions, batch_rewards, batch_next_states, batch_dones = replay_batch
-            dqn_agent.update(batch_states, batch_actions, batch_rewards, batch_next_states, batch_dones, gamma=gamma)
-        else:
-            # wrap in lists so update() can handle them as a batch
-            dqn_agent.update([state], [a], [reward], [next_state], [done], gamma=gamma)
+        if i % update_freq == 0:
+            replay_batch = dqn_agent.sample_replay_buffer()
+            if replay_batch is not None:
+                batch_states, batch_actions, batch_rewards, batch_next_states, batch_dones = replay_batch
+                dqn_agent.update(batch_states, batch_actions, batch_rewards, batch_next_states, batch_dones, gamma=gamma)
+            else:
+                # wrap in lists so update() can handle them as a batch
+                dqn_agent.update([state], [a], [reward], [next_state], [done], gamma=gamma)
 
         if done:
             state = env.reset()

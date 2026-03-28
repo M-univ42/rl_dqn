@@ -21,18 +21,34 @@ class MLP_DQN:
     select_action(state,policy, epsilon): selects action based on policy and epsilon
 
     """
-    def __init__(self,lr,epsilon_max,epsilon_min, replay_buffer_size=-1, batch_size=-1):
+    def __init__(self,lr,epsilon_max,epsilon_min, replay_buffer_size=-1, batch_size=-1, network_size="medium"):
         self.state_dim = 4
         self.action_dim = 2
         self.epsilon_max = epsilon_max
         self.epsilon_min = epsilon_min
-        self.q_network = torch.nn.Sequential(
-            torch.nn.Linear(self.state_dim, 64),
-            torch.nn.ReLU(),
-            torch.nn.Linear(64, 64),
-            torch.nn.ReLU(),
-            torch.nn.Linear(64, self.action_dim)
-        )
+
+        if network_size == "small":
+            self.q_network = torch.nn.Sequential(
+                torch.nn.Linear(self.state_dim, 32),
+                torch.nn.ReLU(),
+                torch.nn.Linear(32, self.action_dim)
+            )
+        elif network_size == "medium":
+            self.q_network = torch.nn.Sequential(
+                torch.nn.Linear(self.state_dim, 64),
+                torch.nn.ReLU(),
+                torch.nn.Linear(64, 64),
+                torch.nn.ReLU(),
+                torch.nn.Linear(64, self.action_dim)
+            )
+        elif network_size == "large":
+            self.q_network = torch.nn.Sequential(
+                torch.nn.Linear(self.state_dim, 128),
+                torch.nn.ReLU(),
+                torch.nn.Linear(128, 128),
+                torch.nn.ReLU(),
+                torch.nn.Linear(128, self.action_dim)
+            )
 
 
         self.optimizer = torch.optim.Adam(self.q_network.parameters(), lr=lr)
