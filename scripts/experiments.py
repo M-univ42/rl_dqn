@@ -13,23 +13,52 @@ SEEDS = [0, 1, 2, 3, 4]
 TRAINING_CONFIGS = {
     # DQN: no buffer, no target network, updates after every step
     "dqn_no_buffer": dict(
-        n_steps=1_00_000,
-        lr=1e-4,
+        n_steps=1_000_000,
+        lr= 0.001,
         epsilon_max=1.0,
-        epsilon_min=0.01,
+        epsilon_min=0.001,
         gamma=0.99,
         replay_buffer_size=-1,
         batch_size=-1,
+        target_update_freq=-1,
+        update_freq=16,
     ),
     # DQN with experience replay
     "dqn_replay": dict(
-        n_steps=1_00_000,
-        lr=1e-4,
+        n_steps=1_000_000,
+        lr= 0.001,
         epsilon_max=1.0,
-        epsilon_min=0.01,
+        epsilon_min=0.001,
         gamma=0.99,
         replay_buffer_size=10_000,
         batch_size=64,
+        target_update_freq=-1,
+        update_freq=16,
+    ),
+    # DQN with target network
+    "dqn_target": dict(
+        n_steps=1_000_000,
+        lr= 0.001,
+        epsilon_max=1.0,
+        epsilon_min=0.001,
+        gamma=0.99,
+        replay_buffer_size=-1,
+        batch_size=-1,
+        target_update_freq=500,
+        update_freq=16,
+    ),
+
+    # DQN with experience replay + target network
+    "dqn_replay_target": dict(
+        n_steps=1_000_000,
+        lr= 0.001,
+        epsilon_max=1.0,
+        epsilon_min=0.001,
+        gamma=0.99,
+        replay_buffer_size=10_000,
+        batch_size=64,
+        target_update_freq=500,
+        update_freq=16,
     ),
 }
 
@@ -55,9 +84,10 @@ def run_experiment(name, config, seed):
     print(f"Running: {name}  |  seed={seed}")
     print(f"Config:  {config}")
     print(f"{'='*60}")
-    n_steps, lr, epsilon_max, epsilon_min, gamma, replay_buffer_size, batch_size = config.values()
+    n_steps, lr, epsilon_max, epsilon_min, gamma, replay_buffer_size, batch_size, target_update_freq, update_freq = config.values()
     ep_rewards, ep_steps = train(n_steps, lr, epsilon_max, epsilon_min, gamma,
-                                 replay_buffer_size, batch_size, seed=seed)
+                                 replay_buffer_size, batch_size, seed=seed,
+                                 target_update_freq=target_update_freq, update_freq=update_freq)
     save_csv(f"{name}_seed{seed}.csv", ep_rewards, ep_steps)
 
 

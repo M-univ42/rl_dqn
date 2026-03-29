@@ -1,4 +1,5 @@
 import random
+import copy
 from collections import deque
 
 import torch
@@ -8,20 +9,22 @@ from environment import CartPoleEnv
 
 
 class MLP_DQN:
-    """ 
+    """
     Generates DQN agent with a simple MLP architecture. No buffer or TN.
 
     PARAMS:
     lr: learning rate
     epsilon_max: epsilon upper limit
     epsilon_min: epsilon lower limit
+    target_network: whether to use a target network for stable Q-value targets
 
     FUNCTIONS:
-    e_greedy(q_vals,n_actions,epsilon): simulates e-greedy policy 
+    e_greedy(q_vals,n_actions,epsilon): simulates e-greedy policy
     select_action(state,policy, epsilon): selects action based on policy and epsilon
+    sync_target_network(): copies q_network weights into target_network
 
     """
-    def __init__(self,lr,epsilon_max,epsilon_min, replay_buffer_size=-1, batch_size=-1, network_size="medium"):
+    def __init__(self,lr,epsilon_max,epsilon_min, replay_buffer_size=-1, batch_size=-1, network_size="medium", target_network=False):
         self.state_dim = 4
         self.action_dim = 2
         self.epsilon_max = epsilon_max
@@ -61,6 +64,13 @@ class MLP_DQN:
         else:
             self.replay_buffer = None
 
+        if target_network:
+            self.target_network = copy.deepcopy(self.q_network)
+            for p in self.target_network.parameters():
+                p.requires_grad_(False)
+        else:
+            self.target_network = None
+
     # action selection using e-greedy/softmax
 
     def e_greedy(self,q_vals,n_actions, epsilon):
@@ -80,6 +90,11 @@ class MLP_DQN:
     def add_to_replay_buffer(self, state, action, reward, next_state, done):
         if self.replay_buffer is not None:
             self.replay_buffer.append((state, action, reward, next_state, done))
+
+    def sync_target_network(self):
+        """Copy q_network weights into target_network (hard update)."""
+        if self.target_network is not None:
+            self.target_network.load_state_dict(self.q_network.state_dict())
         
 
     def select_action(self, state, policy = "e-greedy", epsilon=1):
@@ -105,7 +120,11 @@ class MLP_DQN:
         q_curr = self.q_network(states).gather(1, actions.unsqueeze(1)).squeeze(1)
 
         with torch.no_grad():
-            q_next = self.q_network(states_n).max(dim=1).values
+            if self.target_network is not None:
+                bootstrap_network = self.target_network
+            else:
+                bootstrap_network = self.q_network
+            q_next = bootstrap_network(states_n).max(dim=1).values
             y_i = rewards + gamma * q_next * (1 - dones)
 
         loss_val = self.loss(q_curr, y_i)

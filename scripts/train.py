@@ -3,19 +3,22 @@ from dqn import MLP_DQN
 
 def train(n_steps=1000000, lr=0.0001, epsilon_max=1.0, epsilon_min=0.01, gamma=0.99,
           replay_buffer_size=-1, batch_size=-1, seed=42,
-          update_freq=1, network_size="medium"):
+          update_freq=1, network_size="medium", target_update_freq=-1):
     """Trains DQN agent.
 
     update_freq: number of env steps between gradient updates (update-to-data ratio).
                  1 = update every step, 4 = update every 4 steps, etc.
     network_size: "small" | "medium" | "large"
+    target_update_freq: number of env steps between target network syncs.
+                        -1 disables the target network.
     """
 
     env = CartPoleEnv(render_mode="rgb_array", verbose=True, seed=seed)
 
+    use_target_network = target_update_freq > 0
     dqn_agent = MLP_DQN(lr=lr, epsilon_max=epsilon_max, epsilon_min=epsilon_min,
                         replay_buffer_size=replay_buffer_size, batch_size=batch_size,
-                        network_size=network_size)
+                        network_size=network_size, target_network=use_target_network)
 
     state = env.reset()
 
@@ -36,6 +39,9 @@ def train(n_steps=1000000, lr=0.0001, epsilon_max=1.0, epsilon_min=0.01, gamma=0
         i += 1
 
         dqn_agent.add_to_replay_buffer(state, a, reward, next_state, done)
+        if use_target_network and i % target_update_freq == 0:
+            dqn_agent.sync_target_network()
+
         if i % update_freq == 0:
             replay_batch = dqn_agent.sample_replay_buffer()
             if replay_batch is not None:
