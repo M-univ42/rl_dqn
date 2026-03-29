@@ -86,15 +86,14 @@ def objective(trial: optuna.Trial) -> float:
 
 
 def run_study() -> optuna.Study:
-    pruner  = optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=REPORT_INTERVAL * 3)
     sampler = optuna.samplers.TPESampler(seed=SEED)
 
     study = optuna.create_study(
         direction="maximize",
-        pruner=pruner,
+        pruner=optuna.pruners.NopPruner(),
         sampler=sampler,
         study_name="dqn_ablation",
-        storage="sqlite:///db.sqlite3",
+        storage="sqlite:///millionrun.sqlite3",
     )
 
     study.optimize(objective, n_trials=N_TRIALS, show_progress_bar=True)
