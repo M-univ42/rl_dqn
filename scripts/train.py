@@ -30,8 +30,10 @@ def train(n_steps=1000000, lr=0.0001, epsilon_max=1.0, epsilon_min=0.01, gamma=0
     epsilon = epsilon_max
     while i < n_steps:
 
-        epsilon = i*(epsilon_max - epsilon_min)/n_steps if epsilon > epsilon_min else epsilon_min
+        # epsilon = i*(epsilon_max - epsilon_min)/n_steps if epsilon > epsilon_min else epsilon_min
+        epsilon = max(epsilon_min, epsilon_max - (epsilon_max - epsilon_min) * i / n_steps)
 
+        
         a = dqn_agent.select_action(state, policy="e-greedy", epsilon=epsilon)
         next_state, reward, terminated, truncated, info = env.step(a)
         done = terminated or truncated
